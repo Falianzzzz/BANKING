@@ -28,5 +28,22 @@ class TransazioniController
     $response->getBody()->write(json_encode($results));
     return $response->withHeader("Content-type", "application/json")->withStatus(200);
   }
+
+  public function register (Request $request, Response $response, $args){
+    $mysqli_connection = new MySQLi('my_mariadb', 'root', 'ciccio', 'banking');
+    $idA = (int) $args['idA'];
+    $richiesta = $request->getParsedBody();
+    $type = (string) $richiesta['type'];
+    $amount = (int) $richiesta['amount'];
+    $description = (string) $richiesta['description'];
+    $date =  $richiesta['date'];
+    $tmp = $mysqli_connection->prepare("INSERT INTO transactions('account_id,'type','amount','description','created_at') VALUES (?,?,?,?)");
+    $tmp->bind_param("isisd", $idA, $type,$amount,$description,$date);
+    $result = $tmp->execute();
+    $results = $result->fetch_all(MYSQLI_ASSOC);
+
+    $response->getBody()->write(json_encode($results));
+    return $response->withHeader("Content-type", "application/json")->withStatus(200);
+  }
   
 }

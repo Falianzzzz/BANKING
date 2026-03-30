@@ -11,10 +11,10 @@ $app = AppFactory::create();
 
 $app->get('/accounts/{idA}/transactions', "TransazioniController:index");
 $app->get('/accounts/{idA}/transactions/{idT}', "TransazioniController:show");
-$app->post('/accounts/{idA}/deposits', "AlunniController:index");
-$app->post('/accounts/{idA}/withdrawals', "AlunniController:index");
-$app->put('/accounts/{idA}/transactions/{idT}', "AlunniController:index");
-$app->delete('/accounts/{idA}/transactions/{idT}', "AlunniController:index");
+$app->post('/accounts/{idA}/deposits', "TransazioniController:register");
+$app->post('/accounts/{idA}/withdrawals', "TransazioniController:index");
+$app->put('/accounts/{idA}/transactions/{idT}', "TransazioniController:index");
+$app->delete('/accounts/{idA}/transactions/{idT}', "TransazioniController:index");
 
 $app->get('/accounts/{idA}/balance', "AlunniController:index");
 
