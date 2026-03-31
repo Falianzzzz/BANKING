@@ -7,10 +7,11 @@ class TransazioniController
   public function index(Request $request, Response $response, $args){
     $mysqli_connection = new MySQLi('my_mariadb', 'root', 'ciccio', 'banking');
     $id = (int) $args['idA'];
-    $tmp = $mysqli_connection->prepare("SELECT * FROM accounts WHERE id = (?)");
+    $tmp = $mysqli_connection->prepare("SELECT * FROM transactions WHERE account_id = (?)  ");
     $tmp->bind_param("i", $id);
-    $result = $tmp->execute();
-    $results = $result->fetch_all(MYSQLI_ASSOC);
+    $tmp->execute();
+    $result = $tmp->get_result();
+    $results = $result->fetch_assoc();
 
     $response->getBody()->write(json_encode($results));
     return $response->withHeader("Content-type", "application/json")->withStatus(200);
@@ -22,8 +23,9 @@ class TransazioniController
     $idT = (int) $args['idT'];
     $tmp = $mysqli_connection->prepare("SELECT * FROM transactions t WHERE (SELECT t.id FROM transactions t JOIN accounts a ON a.id = t.account_id WHERE a.id = (?)) = (?) ");
     $tmp->bind_param("ii", $idA, $idT);
-    $result = $tmp->execute();
-    $results = $result->fetch_all(MYSQLI_ASSOC);
+    $tmp->execute();
+    $result = $tmp->get_result();
+    $results = $result->fetch_assoc();
 
     $response->getBody()->write(json_encode($results));
     return $response->withHeader("Content-type", "application/json")->withStatus(200);
@@ -39,8 +41,9 @@ class TransazioniController
     $date =  $richiesta['date'];
     $tmp = $mysqli_connection->prepare("INSERT INTO transactions('account_id,'type','amount','description','created_at') VALUES (?,?,?,?)");
     $tmp->bind_param("isisd", $idA, $type,$amount,$description,$date);
-    $result = $tmp->execute();
-    $results = $result->fetch_all(MYSQLI_ASSOC);
+    $tmp->execute();
+    $result = $tmp->get_result();
+    $results = $result->fetch_assoc();
 
     $response->getBody()->write(json_encode($results));
     return $response->withHeader("Content-type", "application/json")->withStatus(200);

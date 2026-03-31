@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile.php
       args:
         UID: ${MY_UID}
-        GID: ${MY_GID}      
+        GID: ${MY_GID}
     ports:
       - 8080:80
     volumes:
@@ -46,4 +46,3 @@ services:
       - 3000:3000
     volumes:
       - "./app:/app"
-
