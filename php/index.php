@@ -12,11 +12,11 @@ $app = AppFactory::create();
 $app->get('/accounts/{idA}/transactions', "TransazioniController:index");
 $app->get('/accounts/{idA}/transactions/{idT}', "TransazioniController:show");
 $app->post('/accounts/{idA}/deposits', "TransazioniController:register");
-$app->post('/accounts/{idA}/withdrawals', "TransazioniController:index");
-$app->put('/accounts/{idA}/transactions/{idT}', "TransazioniController:index");
-$app->delete('/accounts/{idA}/transactions/{idT}', "TransazioniController:index");
+$app->post('/accounts/{idA}/withdrawals', "TransazioniController:withdrawls");
+$app->put('/accounts/{idA}/transactions/{idT}', "TransazioniController:changeDescription");
+$app->delete('/accounts/{idA}/transactions/{idT}', "TransazioniController:delete");
 
-$app->get('/accounts/{idA}/balance', "AlunniController:index");
+$app->get('/accounts/{idA}/balance', "BilancioController:index");
 
 $app->get('/accounts/{idA}/balance/convert/fiat?to=USD', "AlunniController:index");
 $app->get('/accounts/{idA}/balance/convert/crypto?to=BTC', "AlunniController:index");
