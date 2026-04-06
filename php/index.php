@@ -10,7 +10,6 @@ require __DIR__ . '/controllers/BilancioController.php';
 
 $app = AppFactory::create();
 
-echo "Funziona!";
 $app->get('/accounts/{idA}/transactions', "TransazioniController:index");
 $app->get('/accounts/{idA}/transactions/{idT}', "TransazioniController:show");
 $app->post('/accounts/{idA}/deposits', "TransazioniController:register");
