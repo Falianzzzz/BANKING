@@ -18,6 +18,5 @@ CREATE TABLE `transactions` (
   PRIMARY KEY (`id`),
   FOREIGN KEY (`account_id`) REFERENCES `accounts`(`id`) 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-INSERT INTO accounts (owner_name,currency,balance,created_at) VALUES("magnolfi","euro","10","2026-10-10");
-INSERT INTO transactions (account_id,type,amount,description,created_at) VALUES (1,"depos",100," huhh","2026-03-10");
+;
+  
