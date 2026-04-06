@@ -16,6 +16,7 @@ class TransazioniController {
         return $response->withHeader('Content-Type', 'application/json');
     }
 
+
     public function show(Request $request, Response $response, array $args) {
       $mysqli = new mysqli("localhost", "root", "ciccio", "banking");
       $idA = (int)$args['idA'];
