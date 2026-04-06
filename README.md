@@ -3,3 +3,6 @@
 
 ## Su Windows
 `docker-compose up`
+
+Componenti del gruppo :
+Lapo Mazzei, Tommaso Faliani, Marco Magnolfi
