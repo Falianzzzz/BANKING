@@ -12,7 +12,6 @@ services:
       - "./php:/var/www/html"
 
   my_mariadb:
-    user: ${MY_UID}:${MY_GID}
     build:
       context: ./build
       dockerfile: Dockerfile.mariadb
