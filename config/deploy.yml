@@ -1,0 +1,58 @@
+# Nome della tua applicazione
+service: home-banking
+
+# Immagine dell'app principale (PHP) - Kamal la buildera' e fara' il push
+image: marcomagno/home-banking-web
+
+# Configurazione del server VPS
+servers:
+  web:
+    - 1.2.3.4 # Sostituisci con l'IP reale del tuo server
+
+# Credenziali per il Docker Registry
+registry:
+  server: docker.io
+  username: marcomagno
+  password:
+    - KAMAL_REGISTRY_PASSWORD # Definito in .kamal/secrets
+
+# Variabili d'ambiente per il container PHP
+env:
+  clear:
+    DB_HOST: home-banking-db # Nome interno della rete per l'accessorio db
+    DB_NAME: banking
+  secret:
+    - DB_PASSWORD # Password utente DB, definita in .kamal/secrets
+
+# Configurazione della build (per i tuoi Dockerfile custom)
+builder:
+  context: ./build
+  dockerfile: Dockerfile.php
+  # Se hai bisogno degli argomenti UID/GID per la build:
+  args:
+    UID: ${MY_UID}
+    GID: ${MY_GID}  
+
+# Servizi secondari (MariaDB e phpMyAdmin)
+accessories:
+  db:
+    image: mariadb:latest
+    host: 1.2.3.4
+    port: 3306
+    env:
+      clear:
+        MARIADB_DATABASE: banking
+      secret:
+        - MARIADB_ROOT_PASSWORD # Definita in .kamal/secrets
+    files:
+      - ./build/init.sql:/docker-entrypoint-initdb.d/init.sql
+    directories:
+      - /var/lib/mysql:/var/lib/mysql # Persistenza dati sul server
+
+  phpmyadmin:
+    image: phpmyadmin
+    host: 1.2.3.4
+    port: 8081
+    env:
+      clear:
+        PMA_HOST: home-banking-db
