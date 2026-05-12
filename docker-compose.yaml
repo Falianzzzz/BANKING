@@ -1,46 +1,64 @@
 services:
-  my_web:
+  api:
     build:
       context: ./build
       dockerfile: Dockerfile.php
-      args:
-        UID: ${MY_UID}
-        GID: ${MY_GID}
-    ports:
-      - 8080:80
-    volumes:
-      - "./php:/var/www/html"
-
-  my_mariadb:
-    build:
-      context: ./build
-      dockerfile: Dockerfile.mariadb
-      args:
-        UID: ${MY_UID}
-        GID: ${MY_GID}
     environment:
-      - MARIADB_ROOT_PASSWORD=ciccio
-      - MARIADB_DATABASE=banking
-    volumes:
-      - "./mysql:/var/lib/mysql"
-      - "./build/init.sql:/docker-entrypoint-initdb.d/init.sql"
-
-  my_phpMyAdmin:
-    image: phpmyadmin
+      DB_HOST: db
+      DB_DATABASE: ${DB_DATABASE:-scuola}
+      DB_USERNAME: ${DB_USERNAME:-scuola}
+      DB_PASSWORD: ${DB_PASSWORD:-scuola}
     ports:
-      - 8081:80
-    environment:
-      - PMA_HOST=my_mariadb
+      - ${API_PORT:-8080}:80
+    volumes:
+      - ./php:/var/www/html
+      - php_vendor:/var/www/html/vendor
+    depends_on:
+      db:
+        condition: service_healthy
 
-  my_node:
-    user: ${MY_UID}:${MY_GID}
+  db:
+    image: mariadb:11.4
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-ciccio}
+      MARIADB_DATABASE: ${DB_DATABASE:-banking}
+      MARIADB_USER: ${DB_USERNAME:-scuola}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-scuola}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./build/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h localhost -u$${MARIADB_USER} -p$${MARIADB_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  frontend:
     build:
       context: ./build
       dockerfile: Dockerfile.node
-      args:
-        UID: ${MY_UID}
-        GID: ${MY_GID}
     ports:
-      - 3000:3000
+      - ${FRONTEND_PORT:-5173}:5173
     volumes:
-      - "./app:/app"
+      - ./app:/app
+      - node_modules:/app/node_modules
+    depends_on:
+      - api
+
+  phpmyadmin:
+    image: phpmyadmin:5-apache
+    profiles:
+      - tools
+    ports:
+      - ${PHPMYADMIN_PORT:-8081}:80
+    environment:
+      PMA_HOST: db
+      PMA_USER: ${DB_USERNAME:-scuola}
+      PMA_PASSWORD: ${DB_PASSWORD:-scuola}
+    depends_on:
+      - db
+
+volumes:
+  mariadb_data:
+  node_modules:
+  php_vendor:

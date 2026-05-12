@@ -1,4 +1,10 @@
 #!/bin/bash
+set -e
 
-composer update
-/usr/sbin/apache2ctl -DFOREGROUND
+cd /var/www/html
+
+if [ ! -f vendor/autoload.php ]; then
+  composer install
+fi
+
+exec apache2-foreground

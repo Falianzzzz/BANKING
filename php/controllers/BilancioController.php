@@ -5,8 +5,8 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 class BilancioController {
 
     public function index(Request $request, Response $response, array $args) {
-        $password = getenv('MARIADB_ROOT_PASSWORD');
-        $mysqli = new mysqli("home-banking-db", "root", $password, "banking");
+  $password = "scuola";
+        $mysqli = new mysqli("db", "scuola", $password, "banking");
         $idA = (int)$args['idA'];
 
         $stmt = $mysqli->prepare("SELECT 
@@ -23,8 +23,8 @@ class BilancioController {
     }
 
     public function convertFiat(Request $request, Response $response, array $args) {
-        $password = getenv('MARIADB_ROOT_PASSWORD');
-        $mysqli = new mysqli("home-banking-db", "root", $password, "banking");
+  $password = "scuola";
+        $mysqli = new mysqli("db", "scuola", $password, "banking");
         $idA = (int)$args['idA'];
         $to = strtoupper($request->getQueryParams()['to'] ?? '');
 
@@ -54,8 +54,8 @@ class BilancioController {
     }
 
     public function convertCrypto(Request $request, Response $response, array $args) {
-        $password = getenv('MARIADB_ROOT_PASSWORD');
-        $mysqli = new mysqli("home-banking-db", "root", $password, "banking");
+  $password = "scuola";
+        $mysqli = new mysqli("db", "scuola", $password, "banking");
         $idA = (int)$args['idA'];
         $to = strtoupper($request->getQueryParams()['to'] ?? '');
 

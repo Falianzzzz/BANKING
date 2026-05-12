@@ -5,8 +5,8 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 class TransazioniController {
 
     public function index(Request $request, Response $response, array $args) {
-        $password = getenv('MARIADB_ROOT_PASSWORD');
-        $mysqli = new mysqli("home-banking-db", "root", $password, "banking");
+        $password = "scuola";
+        $mysqli = new mysqli("db", "scuola", $password, "banking");
         $idA = (int)$args['idA'];
         
         $result = $mysqli->query("SELECT * FROM transactions WHERE account_id = $idA ORDER BY created_at DESC");
@@ -19,8 +19,8 @@ class TransazioniController {
 
 
     public function show(Request $request, Response $response, array $args) {
-      $password = getenv('MARIADB_ROOT_PASSWORD');
-      $mysqli = new mysqli("home-banking-db", "root", $password, "banking");
+  $password = "scuola";
+        $mysqli = new mysqli("db", "scuola", $password, "banking");
       $idA = (int)$args['idA'];
       $idT = (int)$args['idT'];
       
@@ -43,8 +43,8 @@ class TransazioniController {
     }
 
     public function register(Request $request, Response $response, array $args) {
-        $password = getenv('MARIADB_ROOT_PASSWORD');
-        $mysqli = new mysqli("home-banking-db", "root", $password, "banking");
+    $password = "scuola";
+        $mysqli = new mysqli("db", "scuola", $password, "banking");
         $idA = (int)$args['idA'];
         $data = json_decode($request->getBody(), true);
         $amount = (float)$data['amount'];
@@ -66,8 +66,8 @@ class TransazioniController {
     }
 
     public function withdrawls(Request $request, Response $response, array $args) {
-        $password = getenv('MARIADB_ROOT_PASSWORD');
-        $mysqli = new mysqli("home-banking-db", "root", $password, "banking");
+  $password = "scuola";
+        $mysqli = new mysqli("db", "scuola", $password, "banking");
         $idA = (int)$args['idA'];
         $data = json_decode($request->getBody(), true);
         $amount = (float)$data['amount'];
@@ -91,8 +91,8 @@ class TransazioniController {
     }
 
     public function changeDescription(Request $request, Response $response, array $args) {
-        $password = getenv('MARIADB_ROOT_PASSWORD');
-        $mysqli = new mysqli("home-banking-db", "root", $password, "banking");
+    $password = "scuola";
+        $mysqli = new mysqli("db", "scuola", $password, "banking");
         $idT = (int)$args['idT'];
         $data = json_decode($request->getBody(), true);
         $newDesc = $data['description'] ?? '';
@@ -106,8 +106,8 @@ class TransazioniController {
     }
 
     public function delete(Request $request, Response $response, array $args) {
-        $password = getenv('MARIADB_ROOT_PASSWORD');
-        $mysqli = new mysqli("home-banking-db", "root", $password, "banking");
+  $password = "scuola";
+        $mysqli = new mysqli("db", "scuola", $password, "banking");
         $idT = (int)$args['idT'];
 
         $stmt = $mysqli->prepare("DELETE FROM transactions WHERE id = ?");

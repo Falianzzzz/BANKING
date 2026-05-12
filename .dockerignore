@@ -1,6 +1,6 @@
+.git
 .env
-
+app
 app/node_modules
 app/dist
-app/.git
 php/vendor
