@@ -7,7 +7,21 @@ class BilancioController {
     public function index(Request $request, Response $response, array $args) {
         $password = getenv('MARIADB_ROOT_PASSWORD');
         $mysqli = new mysqli("home-banking-db", "root", $password, "banking");
-        $idA = (int)$args['idA'];
+        if ($mysqli->connect_error) {
+            $response->getBody()->write(json_encode(['error' => 'DB connection failed']));
+            return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+        }
+        $idA = (int)($args['idA'] ?? 0);
+
+        // check account exists
+        $chk = $mysqli->prepare("SELECT 1 FROM accounts WHERE id = ? LIMIT 1");
+        $chk->bind_param("i", $idA);
+        $chk->execute();
+        if ($chk->get_result()->num_rows === 0) {
+            $mysqli->close();
+            $response->getBody()->write(json_encode(['error' => 'Account non trovato']));
+            return $response->withStatus(404)->withHeader('Content-Type', 'application/json');
+        }
 
         $stmt = $mysqli->prepare("SELECT 
             COALESCE(SUM(CASE WHEN type = 'deposit' THEN amount ELSE 0 END), 0) - 
@@ -25,8 +39,33 @@ class BilancioController {
     public function convertFiat(Request $request, Response $response, array $args) {
         $password = getenv('MARIADB_ROOT_PASSWORD');
         $mysqli = new mysqli("home-banking-db", "root", $password, "banking");
-        $idA = (int)$args['idA'];
-        $to = strtoupper($request->getQueryParams()['to'] ?? '');
+        if ($mysqli->connect_error) {
+            $response->getBody()->write(json_encode(['error' => 'DB connection failed']));
+            return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+        }
+        $idA = (int)($args['idA'] ?? 0);
+        $to = strtoupper(trim($request->getQueryParams()['to'] ?? ''));
+
+        if ($to === '') {
+            $mysqli->close();
+            $response->getBody()->write(json_encode(['error' => 'Parametro to mancante']));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+        if (!preg_match('/^[A-Z]{3}$/', $to)) {
+            $mysqli->close();
+            $response->getBody()->write(json_encode(['error' => 'Valuta non valida']));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+
+        // check account exists
+        $chk = $mysqli->prepare("SELECT 1 FROM accounts WHERE id = ? LIMIT 1");
+        $chk->bind_param("i", $idA);
+        $chk->execute();
+        if ($chk->get_result()->num_rows === 0) {
+            $mysqli->close();
+            $response->getBody()->write(json_encode(['error' => 'Account non trovato']));
+            return $response->withStatus(404)->withHeader('Content-Type', 'application/json');
+        }
 
         $stmt = $mysqli->prepare("SELECT COALESCE(SUM(CASE WHEN type = 'deposit' THEN amount ELSE -amount END), 0) as balance FROM transactions WHERE account_id = ?");
         $stmt->bind_param("i", $idA);
@@ -34,15 +73,17 @@ class BilancioController {
         $balance = (float)$stmt->get_result()->fetch_assoc()['balance'];
         $mysqli->close();
 
-        $url = "https://api.frankfurter.dev/v1/latest?base=EUR&symbols=$to";
-        $data = json_decode(@file_get_contents($url), true);
+        $toEnc = rawurlencode($to);
+        $url = "https://api.frankfurter.dev/v1/latest?base=EUR&symbols=$toEnc";
+        $data = @file_get_contents($url);
+        $data = $data ? json_decode($data, true) : null;
 
         if (!$data || !isset($data['rates'][$to])) {
-            $response->getBody()->write(json_encode(['error' => 'Valuta non supportata']));
+            $response->getBody()->write(json_encode(['error' => 'Valuta non supportata o servizio non disponibile']));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
-        $rate = $data['rates'][$to];
+        $rate = (float)$data['rates'][$to];
         $converted = round($balance * $rate, 2);
 
         $response->getBody()->write(json_encode([
@@ -56,8 +97,33 @@ class BilancioController {
     public function convertCrypto(Request $request, Response $response, array $args) {
         $password = getenv('MARIADB_ROOT_PASSWORD');
         $mysqli = new mysqli("home-banking-db", "root", $password, "banking");
-        $idA = (int)$args['idA'];
-        $to = strtoupper($request->getQueryParams()['to'] ?? '');
+        if ($mysqli->connect_error) {
+            $response->getBody()->write(json_encode(['error' => 'DB connection failed']));
+            return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+        }
+        $idA = (int)($args['idA'] ?? 0);
+        $to = strtoupper(trim($request->getQueryParams()['to'] ?? ''));
+
+        if ($to === '') {
+            $mysqli->close();
+            $response->getBody()->write(json_encode(['error' => 'Parametro to mancante']));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+        if (!preg_match('/^[A-Z0-9]{2,10}$/', $to)) {
+            $mysqli->close();
+            $response->getBody()->write(json_encode(['error' => 'Crypto non valida']));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+
+        // check account exists
+        $chk = $mysqli->prepare("SELECT 1 FROM accounts WHERE id = ? LIMIT 1");
+        $chk->bind_param("i", $idA);
+        $chk->execute();
+        if ($chk->get_result()->num_rows === 0) {
+            $mysqli->close();
+            $response->getBody()->write(json_encode(['error' => 'Account non trovato']));
+            return $response->withStatus(404)->withHeader('Content-Type', 'application/json');
+        }
 
         $stmt = $mysqli->prepare("SELECT COALESCE(SUM(CASE WHEN type = 'deposit' THEN amount ELSE -amount END), 0) as balance FROM transactions WHERE account_id = ?");
         $stmt->bind_param("i", $idA);
@@ -65,15 +131,21 @@ class BilancioController {
         $balance = (float)$stmt->get_result()->fetch_assoc()['balance'];
         $mysqli->close();
 
-        $symbol = "{$to}EUR";
-        $api = json_decode(@file_get_contents("https://api.binance.com/api/v3/ticker/price?symbol=$symbol"), true);
+        $symbol = rawurlencode("{$to}EUR");
+        $apiRaw = @file_get_contents("https://api.binance.com/api/v3/ticker/price?symbol=$symbol");
+        $api = $apiRaw ? json_decode($apiRaw, true) : null;
 
         if (!$api || !isset($api['price'])) {
-            $response->getBody()->write(json_encode(['error' => 'Crypto non trovata']));
+            $response->getBody()->write(json_encode(['error' => 'Crypto non trovata o servizio non disponibile']));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
         $price = (float)$api['price'];
+        if ($price <= 0) {
+            $response->getBody()->write(json_encode(['error' => 'Prezzo non valido']));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+
         $converted = round($balance / $price, 8);
 
         $response->getBody()->write(json_encode([
