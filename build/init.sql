@@ -1,9 +1,12 @@
 CREATE TABLE `accounts` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `owner_name` VARCHAR(255) NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
+    `surname` VARCHAR(255) NOT NULL,
   `currency` VARCHAR(255) NOT NULL,
-  `balance` INT(11) NOT NULL,
-  PRIMARY KEY (`id`),
+  `passwordhash`VARCHAR(255) NOT NULL,
+   `salt` VARCHAR(100) NOT NULL,
+  `balance` INT(11) NOT NULL, 
+  PRIMARY KEY (`id`), 
    `created_at` DATE NOT NULL,
    check ( balance > 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -19,18 +22,19 @@ CREATE TABLE `transactions` (
   FOREIGN KEY (`account_id`) REFERENCES `accounts`(`id`) 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 ;
-  
-INSERT INTO `accounts` (`owner_name`, `currency`, `balance`, `created_at`) VALUES
-('Mario Rossi', 'EUR', 1500, '2023-01-15'),
-('Luigi Bianchi', 'EUR', 2800, '2023-02-10'),
-('Elena Verdi', 'USD', 5000, '2023-03-05'),
-('Sofia Neri', 'EUR', 1200, '2023-04-20'),
-('Marco Bruno', 'GBP', 3500, '2023-05-12'),
-('Giulia Conti', 'EUR', 900, '2023-06-01'),
-('Alessandro Riva', 'USD', 2200, '2023-07-14'),
-('Francesca Sala', 'EUR', 4100, '2023-08-22'),
-('Roberto Galli', 'CHF', 6000, '2023-09-30'),
-('Anna Longo', 'EUR', 300, '2023-10-05');
+
+INSERT INTO `accounts` (`name`,`surname` ,`currency`, `balance`, `created_at`, `passwordhash`, `salt`) VALUES
+('Mario', 'Rossi', 'EUR', 1500, '2023-01-15', SHA2(CONCAT('pass123', 'salt_mario'), 256), 'salt_mario'),
+('Luigi', 'Bianchi', 'EUR', 2800, '2023-02-10', SHA2(CONCAT('abc456', 'salt_luigi'), 256), 'salt_luigi'),
+('Elena', 'Verdi', 'USD', 5000, '2023-03-05', SHA2(CONCAT('verdi789', 'salt_elena'), 256), 'salt_elena'),
+('Sofia' ,'Neri', 'EUR', 1200, '2023-04-20', SHA2(CONCAT('sofia123', 'salt_sofia'), 256), 'salt_sofia'),
+('Marco','Bruno', 'GBP', 3500, '2023-05-12', SHA2(CONCAT('bruno99', 'salt_marco'), 256), 'salt_marco'),
+('Giulia','Conti', 'EUR', 900, '2023-06-01', SHA2(CONCAT('conti00', 'salt_giulia'), 256), 'salt_giulia'),
+('Alessandro','Riva', 'USD', 2200, '2023-07-14', SHA2(CONCAT('riva88', 'salt_ale'), 256), 'salt_ale'),
+('Francesca','Sala', 'EUR', 4100, '2023-08-22', SHA2(CONCAT('sala77', 'salt_fra'), 256), 'salt_fra'),
+('Roberto','Galli', 'CHF', 6000, '2023-09-30', SHA2(CONCAT('galli66', 'salt_rob'), 256), 'salt_rob'),
+('Anna', 'Longo', 'EUR', 300, '2023-10-05', SHA2(CONCAT('longo55', 'salt_anna'), 256), 'salt_anna');
+
 
 
 INSERT INTO `transactions` (`account_id`, `type`, `amount`, `description`, `created_at`) VALUES
