@@ -13,12 +13,10 @@ class LoginController {
         $this->email = htmlspecialchars(trim($email));
         $this->password = trim($password);
 
-        // Validate inputs
         if (!$this->validateInputs()) {
             return ['success' => false, 'message' => 'Email or password invalid'];
         }
 
-        // Query database for user
         $query = "SELECT id, email, password FROM users WHERE email = ?";
         $stmt = $this->db->prepare($query);
         $stmt->bind_param("s", $this->email);
@@ -31,12 +29,10 @@ class LoginController {
 
         $user = $result->fetch_assoc();
 
-        // Verify password
         if (!password_verify($this->password, $user['password'])) {
             return ['success' => false, 'message' => 'Invalid credentials'];
         }
 
-        // Start session and set user data
         session_start();
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['email'] = $user['email'];
